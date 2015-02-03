@@ -6,16 +6,9 @@
  */
 package com.nordpos.device.csv;
 
-import com.nordpos.device.labelprinter.DeviceLabelPrinter;
-import com.nordpos.device.labelprinter.LabelPrinterInterface;
 import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputNull;
 import com.nordpos.device.plu.InputOutputInterface;
-import com.nordpos.device.traslator.UnicodeTranslatorInt;
-import com.nordpos.device.traslator.UnicodeTranslator;
-import com.nordpos.device.writter.WritterFile;
-import com.nordpos.device.writter.WritterRXTX;
-import com.nordpos.device.util.SerialPortParameters;
 import com.nordpos.device.util.StringParser;
 
 /**
@@ -34,7 +27,7 @@ public class InputOutputDriver implements InputOutputInterface {
         
         switch (sPrinterType) {
             case "csv":
-                return new DeviceInputOutputNull();
+                return new FileCSVInputOutput();
             default:
                 return new DeviceInputOutputNull();
         }
