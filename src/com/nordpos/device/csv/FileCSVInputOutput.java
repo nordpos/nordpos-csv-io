@@ -1,12 +1,25 @@
 /**
  *
- * Copyright (C) 2009-2015 Nord Trading Ltd. <http://www.nordpos.com>
- * All rights reserved.
+ * NORD POS is a fork of Openbravo POS.
  *
+ * Copyright (C) 2009-2015 Nord Trading Ltd. <http://www.nordpos.com>
+ *
+ * This file is part of NORD POS.
+ *
+ * NORD POS is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * NORD POS is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * NORD POS. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.nordpos.device.csv;
 
-import com.nordpos.device.traslator.UnicodeTranslator;
 import com.nordpos.device.ticket.TicketPrinterException;
 import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputException;
@@ -20,42 +33,58 @@ import com.nordpos.device.writter.Writter;
  */
 public class FileCSVInputOutput implements DeviceInputOutput {
 
-    public FileCSVInputOutput() throws TicketPrinterException {
+    private static final String SEPARATOR = ";";
+    private final Writter outFile;
 
+    public FileCSVInputOutput(Writter outFile) throws TicketPrinterException {
+        this.outFile = outFile;
     }
 
     @Override
     public void connectDevice() throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        outFile.init(null);
     }
 
     @Override
     public void disconnectDevice() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        outFile.close();
     }
 
     @Override
     public void startDownloadProduct() throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public ProductIO recieveProduct() throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return null;
     }
 
     @Override
     public void startUploadProduct() throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        outFile.write("\"".concat("PRODUCT_CODE").concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat("PRODUCT_NAME").concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat("PRODUCT_QUANTITY").concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat("PRODUCT_PRICESELL").concat("\""));
+        outFile.write("\n");
     }
 
     @Override
     public void sendProduct(ProductIO product) throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        outFile.write("\"".concat(product.getCode()).concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat(product.getName()).concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat(Double.toString(product.getQuantity())).concat("\""));
+        outFile.write(SEPARATOR);
+        outFile.write("\"".concat(Double.toString(product.getPriceSell())).concat("\""));
+        outFile.write("\n");
     }
 
     @Override
     public void stopUploadProduct() throws DeviceInputOutputException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        outFile.flush();
     }
 }
