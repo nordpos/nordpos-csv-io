@@ -24,7 +24,16 @@ import com.nordpos.device.ticket.TicketPrinterException;
 import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputException;
 import com.nordpos.device.plu.ProductIO;
+import com.nordpos.device.reader.Reader;
 import com.nordpos.device.writter.Writter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 /**
  *
@@ -34,9 +43,11 @@ import com.nordpos.device.writter.Writter;
 public class FileCSVInputOutput implements DeviceInputOutput {
 
     private static final String SEPARATOR = ";";
+    private final File inFile;
     private final Writter outFile;
 
-    public FileCSVInputOutput(Writter outFile) throws TicketPrinterException {
+    public FileCSVInputOutput(File inFile, Writter outFile) throws TicketPrinterException {
+        this.inFile = inFile;
         this.outFile = outFile;
     }
 
@@ -52,6 +63,14 @@ public class FileCSVInputOutput implements DeviceInputOutput {
 
     @Override
     public void startDownloadProduct() throws DeviceInputOutputException {
+        try {
+            CSVParser parser = CSVParser.parse(inFile, StandardCharsets.UTF_8, CSVFormat.newFormat(';'));
+            for (CSVRecord csvRecord : parser) {
+//     ...
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FileCSVInputOutput.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -85,6 +104,7 @@ public class FileCSVInputOutput implements DeviceInputOutput {
 
     @Override
     public void stopUploadProduct() throws DeviceInputOutputException {
+
         outFile.flush();
     }
 }

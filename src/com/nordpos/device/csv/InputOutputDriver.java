@@ -23,8 +23,10 @@ package com.nordpos.device.csv;
 import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputNull;
 import com.nordpos.device.plu.InputOutputInterface;
+import com.nordpos.device.reader.ReaderFile;
 import com.nordpos.device.util.StringParser;
 import com.nordpos.device.writter.WritterFile;
+import java.io.File;
 
 /**
  *
@@ -42,7 +44,7 @@ public class InputOutputDriver implements InputOutputInterface {
         
         switch (sPrinterType) {
             case "csv":
-                return new FileCSVInputOutput(new WritterFile(sPrinterParam2));
+                return new FileCSVInputOutput(new File(sPrinterParam1), new WritterFile(sPrinterParam2));
             default:
                 return new DeviceInputOutputNull();
         }
