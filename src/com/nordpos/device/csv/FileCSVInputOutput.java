@@ -24,11 +24,11 @@ import com.nordpos.device.ticket.TicketPrinterException;
 import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputException;
 import com.nordpos.device.plu.ProductIO;
-import com.nordpos.device.reader.Reader;
 import com.nordpos.device.writter.Writter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
@@ -42,32 +42,43 @@ import org.apache.commons.csv.CSVRecord;
  */
 public class FileCSVInputOutput implements DeviceInputOutput {
 
-    private static final String SEPARATOR = ";";
+    private static final String PRODUCT_CODE = "PRODUCT_CODE";
+    private static final String PRODUCT_NAME = "PRODUCT_NAME";
+    private static final String PRODUCT_QUANTITY = "PRODUCT_QUANTITY";
+    private static final String PRODUCT_PRICESELL = "PRODUCT_PRICESELL";
+    private static final char SEPARATOR = ';';
+    private static final char QUOTE = '"';
+    
     private final File inFile;
     private final Writter outFile;
+    private final byte[] bEndOfLine;
+    private Iterator recIterator;
 
-    public FileCSVInputOutput(File inFile, Writter outFile) throws TicketPrinterException {
+    public FileCSVInputOutput(File inFile, Writter outFile, byte[] bEndOfLine) throws TicketPrinterException {
         this.inFile = inFile;
         this.outFile = outFile;
+        this.bEndOfLine = bEndOfLine;
     }
 
     @Override
     public void connectDevice() throws DeviceInputOutputException {
-        outFile.init(null);
     }
 
     @Override
     public void disconnectDevice() {
-        outFile.close();
     }
 
     @Override
     public void startDownloadProduct() throws DeviceInputOutputException {
         try {
-            CSVParser parser = CSVParser.parse(inFile, StandardCharsets.UTF_8, CSVFormat.newFormat(';'));
-            for (CSVRecord csvRecord : parser) {
-//     ...
-            }
+            CSVFormat format = CSVFormat.EXCEL
+                    .withHeader(PRODUCT_CODE, PRODUCT_NAME, PRODUCT_QUANTITY, PRODUCT_PRICESELL)
+                    .withDelimiter(SEPARATOR)
+                    .withIgnoreEmptyLines()
+                    .withQuote(QUOTE)
+                    .withSkipHeaderRecord();
+            CSVParser parser = CSVParser.parse(inFile, StandardCharsets.UTF_8, format);
+            recIterator = parser.iterator();
         } catch (IOException ex) {
             Logger.getLogger(FileCSVInputOutput.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -75,36 +86,44 @@ public class FileCSVInputOutput implements DeviceInputOutput {
 
     @Override
     public ProductIO recieveProduct() throws DeviceInputOutputException {
+        CSVRecord record;
+        ProductIO product = new ProductIO();
+        while (recIterator.hasNext()) {
+            record = (CSVRecord) recIterator.next();
+            product.setCode(record.get(PRODUCT_CODE));
+            String qty = record.get(PRODUCT_QUANTITY);
+            product.setQuantity(Double.parseDouble(qty));
+            return product;
+        }
         return null;
     }
 
     @Override
     public void startUploadProduct() throws DeviceInputOutputException {
-        outFile.write("\"".concat("PRODUCT_CODE").concat("\""));
-        outFile.write(SEPARATOR);
-        outFile.write("\"".concat("PRODUCT_NAME").concat("\""));
-        outFile.write(SEPARATOR);
-        outFile.write("\"".concat("PRODUCT_QUANTITY").concat("\""));
-        outFile.write(SEPARATOR);
-        outFile.write("\"".concat("PRODUCT_PRICESELL").concat("\""));
-        outFile.write("\n");
+        outFile.write(PRODUCT_CODE);
+        outFile.write(Character.toString(SEPARATOR));
+        outFile.write(PRODUCT_NAME);
+        outFile.write(Character.toString(SEPARATOR));
+        outFile.write(PRODUCT_QUANTITY);
+        outFile.write(Character.toString(SEPARATOR));
+        outFile.write(PRODUCT_PRICESELL);
+        outFile.write(bEndOfLine);
     }
 
     @Override
     public void sendProduct(ProductIO product) throws DeviceInputOutputException {
         outFile.write("\"".concat(product.getCode()).concat("\""));
-        outFile.write(SEPARATOR);
+        outFile.write(Character.toString(SEPARATOR));
         outFile.write("\"".concat(product.getName()).concat("\""));
-        outFile.write(SEPARATOR);
-        outFile.write("\"".concat(Double.toString(product.getQuantity())).concat("\""));
-        outFile.write(SEPARATOR);
-        outFile.write("\"".concat(Double.toString(product.getPriceSell())).concat("\""));
-        outFile.write("\n");
+        outFile.write(Character.toString(SEPARATOR));
+        outFile.write(Double.toString(product.getQuantity()));
+        outFile.write(Character.toString(SEPARATOR));
+        outFile.write(Double.toString(product.getPriceSell()));
+        outFile.write(bEndOfLine);
     }
 
     @Override
     public void stopUploadProduct() throws DeviceInputOutputException {
-
-        outFile.flush();
+        outFile.close();
     }
 }
