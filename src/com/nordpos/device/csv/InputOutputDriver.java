@@ -24,7 +24,6 @@ import com.nordpos.device.plu.DeviceInputOutput;
 import com.nordpos.device.plu.DeviceInputOutputNull;
 import com.nordpos.device.plu.InputOutputInterface;
 import com.nordpos.device.util.StringParser;
-import com.nordpos.device.writter.WritterFile;
 import java.io.File;
 
 /**
@@ -43,16 +42,11 @@ public class InputOutputDriver implements InputOutputInterface {
         String sType = sp.nextToken(':');
         String sParam1 = sp.nextToken(',');
         String sParam2 = sp.nextToken(',');
-        String sParam3 = sp.nextToken(',');
 
         switch (sType) {
             case "csv":
-                if ("unix".equals(sParam3)) {
-                return new FileCSVInputOutput(new File(sParam1), new WritterFile(sParam2), EOL_UNIX);
-                } else {
-                    return new FileCSVInputOutput(new File(sParam1), new WritterFile(sParam2), EOL_DOS);
-                }
-                default:
+                return new FileCSVInputOutput(new File(sParam1), new File(sParam2));
+            default:
                 return new DeviceInputOutputNull();
         }
 
